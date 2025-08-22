@@ -1,0 +1,416 @@
+/* ==== 2ch風フォント/色 ==== */
+:root {
+    --bg: #fffdf5;
+    --text: #1a1a1a;
+    --muted: #666;
+    --accent: #0b61a4;
+    --accent-2: #e6f0ff;
+    --border: #ddd;
+    --card: #fff;
+    --font-body: "MS PGothic", "Hiragino Kaku Gothic ProN", "Osaka", "Meiryo", "Noto Sans JP", sans-serif;
+    --font-mono: "MS Gothic", "MS PGothic", "Noto Sans Mono CJK JP", "ui-monospace", Menlo, Consolas, monospace;
+}
+
+* {
+    font-family: var(--font-body) !important
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5
+}
+
+a {
+    color: var(--accent)
+}
+
+.muted {
+    color: var(--muted)
+}
+
+h1,
+h2,
+h3 {
+    margin: 0 0 6px
+}
+
+/* ヘッダー */
+.site-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 8px
+}
+
+.header-right {
+    display: flex;
+    gap: 10px;
+    align-items: center
+}
+
+.sort-wrap {
+    display: flex;
+    gap: 6px;
+    align-items: center
+}
+
+.sort-wrap select {
+    border: 1px solid var(--border);
+    padding: 6px;
+    border-radius: 4px;
+    background: #fff
+}
+
+/* カード/フッター */
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px;
+    margin: 8px 12px
+}
+
+.footer {
+    padding: 16px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    margin-top: 40px
+}
+
+/* ボタン */
+.primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 8px 12px;
+    cursor: pointer
+}
+
+.ghost {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 6px 10px;
+    cursor: pointer
+}
+
+button:disabled {
+    opacity: .6;
+    cursor: not-allowed
+}
+
+/* 管理カード */
+.manager-card {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start
+}
+
+.avatar-l {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%
+}
+
+/* 要約 */
+.summary-header {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    border-bottom: 1px dotted var(--border);
+    padding-bottom: 4px;
+    margin-bottom: 4px
+}
+
+.avatar-s {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%
+}
+
+.summary-content {
+    white-space: pre-wrap;
+    font-family: var(--font-mono);
+    font-size: 13px
+}
+
+/* 寮タブ・フィルタ */
+.dorm-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 6px 12px
+}
+
+.dorm-tab {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font-mono)
+}
+
+.dorm-tab.active {
+    background: var(--accent-2);
+    border-color: var(--accent)
+}
+
+.filters {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 12px
+}
+
+.filters input[type="search"],
+.filters select {
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff
+}
+
+/* 右下「新規投稿」固定 */
+.filters .go-post {
+    position: fixed;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    z-index: 2000;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, .12);
+    touch-action: manipulation
+}
+
+/* ビュー切替 */
+.view {
+    display: none
+}
+
+.view.active {
+    display: block
+}
+
+/* タイムライン */
+.thread-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden
+}
+
+.thread-title {
+    font-size: 15px;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.badges {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow: hidden;
+    margin: 4px 0
+}
+
+.badge {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2px 6px;
+    font-size: 12px;
+    background: #fff;
+    white-space: nowrap
+}
+
+.badge.accent {
+    background: var(--accent-2);
+    border-color: var(--accent)
+}
+
+.thread-meta-inline {
+    color: var(--muted);
+    font-size: 12px;
+    margin-left: 6px;
+    flex: 0 0 auto;
+    white-space: nowrap
+}
+
+.thread-body {
+    display: none;
+    margin-top: 8px
+}
+
+.thread-body.active {
+    display: block
+}
+
+/* 投稿 */
+.post {
+    border: 1px dotted var(--border);
+    border-radius: 4px;
+    padding: 8px;
+    margin: 8px 0;
+    background: #fff
+}
+
+.post .post-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px
+}
+
+.post .author {
+    font-weight: 600;
+    font-family: var(--font-mono)
+}
+
+.post img {
+    max-width: 100%;
+    border-radius: 4px;
+    margin-top: 4px
+}
+
+.post.brighty {
+    border-color: var(--accent)
+}
+
+/* いいね（Twitter風） */
+.like {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px
+}
+
+.like-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border-radius: 12px;
+    transition: background .18s
+}
+
+.like-btn:hover {
+    background: #eef2ff
+}
+
+.icon {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: #6b7280;
+    stroke-width: 2;
+    transition: transform .18s, fill .18s, stroke .18s
+}
+
+.like-btn.liked .icon {
+    fill: #ef4444;
+    stroke: #ef4444;
+    transform: scale(1.1)
+}
+
+.like-count {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--font-mono)
+}
+
+/* スタンプ */
+.stamp-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap
+}
+
+.stamp-btn {
+    font-size: 20px;
+    line-height: 1;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 8px;
+    padding: 6px 8px;
+    cursor: pointer
+}
+
+.stamp-btn:active {
+    transform: scale(.96)
+}
+
+.stamp-bubble {
+    font-size: 22px;
+    line-height: 1;
+    display: inline-block;
+    padding: 4px 6px
+}
+
+/* 返信ボックス */
+.reply-box {
+    margin-top: 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    background: #fafafa
+}
+
+.reply-box input[type="text"],
+.reply-box textarea,
+.reply-box input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff
+}
+
+.reply-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px
+}
+
+/* ページャー */
+.pager {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px
+}
+
+.pager button {
+    border: 1px solid var(--border);
+    background: #fff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer
+}
+
+.pager button[disabled] {
+    opacity: .5;
+    cursor: not-allowed
+}
+
+.pager .current {
+    font-weight: 700;
+    background: var(--accent-2);
+    border-color: var(--accent)
+}
+

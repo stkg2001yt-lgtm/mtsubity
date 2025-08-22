@@ -26,6 +26,9 @@ const SUMMARY_INTERVAL_MS = 15 * 60 * 1000;// 要約の自動更新
 const AI_AUTO = false;                     // ★AI住人の自動書き込みはオフ（手動のみ）
 const BRIGHTY_NAME = "BRIGHTY";
 const BRIGHTY_ANONID = "BRIGHTY";
+// スレID -> そのスレの投稿購読（ref/handler）を保持
+const POST_SUBS = {};
+
 
 /* --- 状態 --- */
 let db = null;
@@ -207,13 +210,35 @@ function renderList() {
         const nm = $("<input>").attr({ type: "text", placeholder: "ななしさん" }).val(localStorage.getItem("displayName") || "");
         const ta = $("<textarea>").attr({ rows: 3, placeholder: "内容" });
         const file = $("<input>").attr({ type: "file", accept: "image/*" });
-        const send = $("<button>").addClass("primary").text("返信").on("click", async () => {
-            const name = nm.val().trim(); if (name) { localStorage.setItem("displayName", name); STATE.displayName = name; }
-            const content = ta.val().trim(); if (!content && !file[0].files.length) { alert("本文か画像のどちらかは必要です"); return; }
-            let img = null; if (file[0].files.length) img = await fileToDataURL(file[0].files[0], 1280);
-            await addReply(t.id, { author: { anonId: STATE.anonId, name: name || null }, content, image: img, createdAt: Date.now() });
-            ta.val(""); file.val("");
-        });
+        const send = $("<button>")
+  .addClass("primary")
+  .attr("type", "button")          // ← submit化を防止
+  .text("返信")
+  .on("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();           // ← 展開トグルへ伝播させない
+
+    const name = nm.val().trim();
+    if (name) { localStorage.setItem("displayName", name); STATE.displayName = name; }
+
+    const content = ta.val().trim();
+    if (!content && !file[0].files.length) { alert("本文か画像のどちらかは必要です"); return; }
+
+    let img = null;
+    if (file[0].files.length) img = await fileToDataURL(file[0].files[0], 1280);
+
+    try {
+      await addReply(t.id, {
+        author: { anonId: STATE.anonId, name: name || null },
+        content, image: img, createdAt: Date.now()
+      });
+      ta.val(""); file.val("");    // 入力クリア
+    } catch (err) {
+      console.error("[REPLY ERROR]", err);
+      alert("返信に失敗: " + (err?.message || err));
+    }
+  });
+
 
         // スタンプ（ワンタップ返信）
         const stamps = ["👍", "😂", "🎉", "🙏", "🍜", "🛠️", "📦", "🧹"];
@@ -380,29 +405,45 @@ async function createThread(e) {
 }
 
 async function addReply(threadId, post) {
-    if (!db) throw new Error("DB未接続");
-    const key = db.ref(`threads/${threadId}/posts`).push().key;
-    const now = post?.createdAt || Date.now();
+  if (!db) throw new Error("DB未接続");
 
-    const snap = await db.ref(`threads/${threadId}/posts`).get();
-    const replies = (snap.exists() ? snap.numChildren() : 0) + 1;
+  const now = post?.createdAt || Date.now();
 
-    const up = {};
-    up[`threads/${threadId}/posts/${key}`] = { ...post, likesTotal: post?.likesTotal || 0 };
-    up[`threads/${threadId}/updatedAt`] = now;
-    up[`threads/${threadId}/meta/repliesTotal`] = replies;
-    await db.ref().update(up);
+  // 1) 返信をもっとも確実な push().set() で追加
+  const postRef = db.ref(`threads/${threadId}/posts`).push();
+  await postRef.set({ ...post, likesTotal: 0, createdAt: now });
 
-    if (post?.stamp) { await db.ref(`threads/${threadId}/meta/stampsTotal`).transaction(c => (c || 0) + 1); }
+  // 2) スレの更新時刻を個別更新
+  await db.ref(`threads/${threadId}/updatedAt`).set(now);
+
+  // 3) 返信数はトランザクションで +1（同時書き込みでも正確）
+  await db.ref(`threads/${threadId}/meta/repliesTotal`).transaction(v => (v || 0) + 1);
+
+  // 4) 楽観的UI：購読の帰りを待たずに即時で1件表示しておく
+  const $posts = $(`[data-thread='${threadId}'] .posts`);
+  if ($posts.length) {
+    $posts.append(postNode({ ...post, likesTotal: 0, createdAt: now }, threadId, postRef.key));
+  }
 }
 
 function loadPosts(threadId, container) {
-    db.ref(`threads/${threadId}/posts`).orderByChild("createdAt").limitToLast(100).on("value", (s) => {
-        const arr = []; s.forEach(ch => arr.push({ key: ch.key, ...ch.val() }));
-        arr.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-        container.empty();
-        arr.forEach(p => container.append(postNode(p, threadId, p.key)));
-    });
+  // 旧購読を解除（同じ ref + handler を指定する必要がある）
+  const prev = POST_SUBS[threadId];
+  if (prev) prev.ref.off("value", prev.handler);
+
+  const ref = db.ref(`threads/${threadId}/posts`)
+               .orderByChild("createdAt").limitToLast(100);
+
+  const handler = (s) => {
+    const arr = [];
+    s.forEach(ch => arr.push({ key: ch.key, ...ch.val() }));
+    arr.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    container.empty();
+    arr.forEach(p => container.append(postNode(p, threadId, p.key)));
+  };
+
+  ref.on("value", handler);
+  POST_SUBS[threadId] = { ref, handler };   // ← 現在の購読を記録
 }
 
 /* --- Gemini（要約 & BRIGHTYの文生成） --- */
@@ -490,3 +531,4 @@ async function brightyCreate() {
     };
     await db.ref(`threads/${tid}`).set(data);
 }
+
